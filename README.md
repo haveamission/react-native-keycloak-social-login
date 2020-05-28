@@ -1,5 +1,5 @@
 # react-native-login-keycloak
-This is a fork of ak1394's React-Native-Login module. It's a version that I'm planning to maintenance more than it's been with ak1394.
+This is a fork of ak1394's and mahomahoxd's React-Native-Login module. It includes improvements, bug fixes and social logins (via Keycloak token exchange)
 
 ## Documentation
 
