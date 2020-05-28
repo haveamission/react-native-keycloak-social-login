@@ -60,8 +60,13 @@ Login.startLoginProcess(config).then(tokens => {
 //
 // { access_token: '...', refresh_token: '...', id_token: '...', ...}
 ```
-
 Logging in by the startLoginProcess function will save it in the AsyncStorage, whereas after its been successful, getTokens will get the most recent tokens that are saved and you can then use it to authenticate against a backend.
+
+### Social Login
+Coming soon
+
+### Keycloak Token Exchange
+Coming soon
 
 ### Refreshing the token
 ```js
