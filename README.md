@@ -9,7 +9,7 @@ This is a fork of ak1394's and mahomahoxd's React-Native-Login module. It includ
 ## Install
 
 ```shell
-npm i --save react-native-login-keycloak
+Coming Soon
 ```
 
 ## Usage
@@ -24,7 +24,7 @@ Also, add the applinks:<APPSITE HOST> entry to the Associated Domains Capability
 ### Imports
 
 ```js
-import Login from 'react-native-login-keycloak';
+Coming soon
 ```
 
 ### Checking if tokens are saved on the device
