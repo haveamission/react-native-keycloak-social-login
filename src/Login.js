@@ -10,9 +10,10 @@ import appleAuth, {
   AppleAuthRequestScope,
   AppleAuthCredentialState,
 } from '@invertase/react-native-apple-authentication';
+import { LoginManager, AccessToken } from "react-native-fbsdk";
 let InAppBrowser = require("react-native-inappbrowser-reborn");
-let FBSDK = require("react-native-fbsdk");
-let GoogleSignIn = require("react-native-google-signin");
+//let FBSDK = require("react-native-fbsdk");
+let GoogleSignin = require("@react-native-community/google-signin");
 
 export class Login {
   state;
@@ -38,12 +39,13 @@ export class Login {
   }
 
   async generateParams(conf, tokenType, issuer, token) {
-    const params = new URLSearchParams();
-    params.append('grant_type', 'urn:ietf:params:oauth:grant-type:token-exchange');
-    params.append('subject_token_type', 'urn:ietf:params:oauth:token-type:' + tokenType);
-    params.append('client_id', conf.clientId);
-    params.append('subject_issuer', issuer);
-    params.append('subject_token', token);
+    let params = {};
+    params['grant_type'] = 'urn:ietf:params:oauth:grant-type:token-exchange';
+    params['subject_token_type'] = 'urn:ietf:params:oauth:token-type:' + tokenType;
+    params['client_id'] = conf.clientId;
+    params['subject_issuer'] = issuer;
+    params['subject_token'] = token;
+
     return params;
   }
 
@@ -51,22 +53,45 @@ export class Login {
     this.setConf(conf);
     const { url, state } = this.getLoginURL();
     let result = await LoginManager.logInWithPermissions(["public_profile", "email"]);
-    let token = await AccessToken.getCurrentAccessToken();
-    let params = generateParams(conf, "access_token", "facebook", token);
+    let currentToken = await AccessToken.getCurrentAccessToken();
+    let params = await this.generateParams(conf, "access_token", "facebook", currentToken.accessToken);
     this.props.url = `${this.getRealmURL()}/protocol/openid-connect/token`;
     this.setRequestOptions(
       'POST',
       querystring.stringify(params),
     );
     const fullResponse = await fetch(this.props.url, this.props.requestOptions);
-    console.log("FULL RESPONSE FB");
-    console.log(fullResponse);
+    if (fullResponse.ok) {
+      const jsonResponse = await fullResponse.json();
+      jsonResponse.id_token = jsonResponse.access_token;
+      await this.tokenStorage.saveTokens(jsonResponse);
+      return jsonResponse;
+    } else {
+      throw "Something went wrong";
+    }
   }
 
   async GoogleLogin(conf) {
     this.setConf(conf);
     const { url, state } = this.getLoginURL();
-    let params = generateParams(conf, "access_token", "google");
+    GoogleSignin.GoogleSignin.configure();
+    const userInfo = await GoogleSignin.GoogleSignin.signIn();
+    let tokenInfo = await GoogleSignin.GoogleSignin.getTokens();
+    let params = await this.generateParams(conf, "access_token", "google", tokenInfo.accessToken);
+    this.props.url = `${this.getRealmURL()}/protocol/openid-connect/token`;
+    this.setRequestOptions(
+      'POST',
+      querystring.stringify(params),
+    );
+    const fullResponse = await fetch(this.props.url, this.props.requestOptions);
+    if (fullResponse.ok) {
+      const jsonResponse = await fullResponse.json();
+      jsonResponse.id_token = jsonResponse.access_token;
+      await this.tokenStorage.saveTokens(jsonResponse);
+      return jsonResponse;
+    } else {
+      throw "Something went wrong";
+    }
   }
 
   async AppleLogin(conf) {
@@ -76,18 +101,27 @@ export class Login {
       requestedOperation: AppleAuthRequestOperation.LOGIN,
       requestedScopes: [AppleAuthRequestScope.EMAIL, AppleAuthRequestScope.FULL_NAME],
     });
+    let code = appleAuthRequestResponse.authorizationCode;
     let token = appleAuthRequestResponse.identityToken;
-    let params = generateParams(conf, "id_token", "apple", token);
+    await this.tokenStorage.saveTokens(appleAuthRequestResponse.identityToken);
+    let params = await this.generateParams(conf, "id_token", "apple", token);
     this.props.url = `${this.getRealmURL()}/protocol/openid-connect/token`;
     this.setRequestOptions(
       'POST',
       querystring.stringify(params),
     );
     const fullResponse = await fetch(this.props.url, this.props.requestOptions);
-    console.log("FULL RESPONSE Apple");
-    console.log(fullResponse);
-    let json = await fullResponse.json();
-    console.log(json);
+
+    if (fullResponse.ok) {
+      const jsonResponse = await fullResponse.json();
+
+      jsonResponse.id_token = jsonResponse.access_token;
+
+      await this.tokenStorage.saveTokens(jsonResponse);
+      return jsonResponse;
+    } else {
+      throw "Something went wrong";
+    }
   }
 
   getTokens() {
@@ -98,18 +132,14 @@ export class Login {
     this.setConf(conf);
     return new Promise(((resolve, reject) => {
       const { url, state } = this.getLoginURL();
-      console.log("login process state");
-      console.log(state);
       this.state = {
         ...this.state,
         resolve,
         reject,
         state,
       };
-      console.log("url");
-      console.log(url);
-      if (InAppBrowser && await InAppBrowser.isAvailable()) {
-        await InAppBrowser.open(url);
+      if (InAppBrowser) {
+        InAppBrowser.default.open(url);
       }
       else {
         Linking.openURL(url);
@@ -124,6 +154,9 @@ export class Login {
   }
 
   async logoutKc() {
+    if (LoginManager) {
+      await LoginManager.logOut();
+    }
     const { clientId } = this.conf;
     const savedTokens = await this.getTokens();
     if (!savedTokens) {
@@ -179,14 +212,16 @@ export class Login {
 
     const fullResponse = await fetch(this.props.url, this.props.requestOptions);
     const jsonResponse = await fullResponse.json();
+    console.log("TRUE JSON RESPONSE");
+    console.log(jsonResponse);
     if (fullResponse.ok) {
       this.tokenStorage.saveTokens(jsonResponse);
       this.state.resolve(jsonResponse);
     } else {
       this.state.reject(jsonResponse);
     }
-    if (InAppBrowser && await InAppBrowser.isAvailable()) {
-      InAppBrowser.close();
+    if (InAppBrowser) {
+      InAppBrowser.default.close();
     }
   }
 
