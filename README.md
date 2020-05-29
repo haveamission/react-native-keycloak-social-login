@@ -1,5 +1,5 @@
 # react-native-login-keycloak
-This is a fork of ak1394's React-Native-Login module. It's a version that I'm planning to maintenance more than it's been with ak1394.
+This is a fork of ak1394's and mahomahoxd's React-Native-Login module. It includes improvements, bug fixes and social logins (via Keycloak token exchange)
 
 ## Documentation
 
@@ -9,7 +9,7 @@ This is a fork of ak1394's React-Native-Login module. It's a version that I'm pl
 ## Install
 
 ```shell
-npm i --save react-native-login-keycloak
+Coming Soon
 ```
 
 ## Usage
@@ -24,7 +24,7 @@ Also, add the applinks:<APPSITE HOST> entry to the Associated Domains Capability
 ### Imports
 
 ```js
-import Login from 'react-native-login-keycloak';
+Coming soon
 ```
 
 ### Checking if tokens are saved on the device
@@ -60,8 +60,13 @@ Login.startLoginProcess(config).then(tokens => {
 //
 // { access_token: '...', refresh_token: '...', id_token: '...', ...}
 ```
-
 Logging in by the startLoginProcess function will save it in the AsyncStorage, whereas after its been successful, getTokens will get the most recent tokens that are saved and you can then use it to authenticate against a backend.
+
+### Social Login
+Coming soon
+
+### Keycloak Token Exchange
+Coming soon
 
 ### Refreshing the token
 ```js
