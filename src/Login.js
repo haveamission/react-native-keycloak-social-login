@@ -67,7 +67,7 @@ export class Login {
       await this.tokenStorage.saveTokens(jsonResponse);
       return jsonResponse;
     } else {
-      throw "Something went wrong";
+      throw { name: "ResponseError", message: "Something went wrong with the response" };
     }
   }
 
@@ -90,7 +90,7 @@ export class Login {
       await this.tokenStorage.saveTokens(jsonResponse);
       return jsonResponse;
     } else {
-      throw "Something went wrong";
+      throw { name: "ResponseError", message: "Something went wrong with the response" };
     }
   }
 
@@ -120,7 +120,7 @@ export class Login {
       await this.tokenStorage.saveTokens(jsonResponse);
       return jsonResponse;
     } else {
-      throw "Something went wrong";
+      throw { name: "ResponseError", message: "Something went wrong with the response" };
     }
   }
 
