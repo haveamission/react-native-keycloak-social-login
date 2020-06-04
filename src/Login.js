@@ -61,12 +61,17 @@ export class Login {
       querystring.stringify(params),
     );
     const fullResponse = await fetch(this.props.url, this.props.requestOptions);
+    const jsonResponse = await fullResponse.json();
+
     if (fullResponse.ok) {
-      const jsonResponse = await fullResponse.json();
       jsonResponse.id_token = jsonResponse.access_token;
+
       await this.tokenStorage.saveTokens(jsonResponse);
       return jsonResponse;
-    } else {
+    } else if (jsonResponse.error_description === "User already exists") {
+      throw { name: "WrongPlatformError", message: "Please sign in with the correct social media platform" };
+    }
+    else {
       throw { name: "ResponseError", message: "Something went wrong with the response" };
     }
   }
@@ -84,12 +89,19 @@ export class Login {
       querystring.stringify(params),
     );
     const fullResponse = await fetch(this.props.url, this.props.requestOptions);
+    const jsonResponse = await fullResponse.json();
+
+    let responseText = await fullResponse.json();
+
     if (fullResponse.ok) {
-      const jsonResponse = await fullResponse.json();
       jsonResponse.id_token = jsonResponse.access_token;
+
       await this.tokenStorage.saveTokens(jsonResponse);
       return jsonResponse;
-    } else {
+    } else if (jsonResponse.error_description === "User already exists") {
+      throw { name: "WrongPlatformError", message: "Please sign in with the correct social media platform" };
+    }
+    else {
       throw { name: "ResponseError", message: "Something went wrong with the response" };
     }
   }
@@ -111,15 +123,17 @@ export class Login {
       querystring.stringify(params),
     );
     const fullResponse = await fetch(this.props.url, this.props.requestOptions);
+    const jsonResponse = await fullResponse.json();
 
     if (fullResponse.ok) {
-      const jsonResponse = await fullResponse.json();
-
       jsonResponse.id_token = jsonResponse.access_token;
 
       await this.tokenStorage.saveTokens(jsonResponse);
       return jsonResponse;
-    } else {
+    } else if (jsonResponse.error_description === "User already exists") {
+      throw { name: "WrongPlatformError", message: "Please sign in with the correct social media platform" };
+    }
+    else {
       throw { name: "ResponseError", message: "Something went wrong with the response" };
     }
   }
