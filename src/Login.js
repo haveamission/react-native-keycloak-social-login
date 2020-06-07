@@ -1,9 +1,6 @@
 import { Linking } from 'react-native';
 import * as querystring from 'query-string';
 import uuidv4 from 'uuid/v4';
-import {
-  WebView
-} from 'react-native-webview';
 import React from 'react';
 
 try {
@@ -166,6 +163,8 @@ export class Login {
         reject,
         state,
       };
+      console.log("in app browser");
+      console.log(InAppBrowser)
       if (InAppBrowser) {
         InAppBrowser.default.open(url);
       }
