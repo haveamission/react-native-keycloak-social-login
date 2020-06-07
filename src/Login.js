@@ -5,15 +5,29 @@ import {
   WebView
 } from 'react-native-webview';
 import React from 'react';
-import appleAuth, {
-  AppleAuthRequestOperation,
-  AppleAuthRequestScope,
-  AppleAuthCredentialState,
-} from '@invertase/react-native-apple-authentication';
-import { LoginManager, AccessToken } from "react-native-fbsdk";
-let InAppBrowser = require("react-native-inappbrowser-reborn");
-//let FBSDK = require("react-native-fbsdk");
-let GoogleSignin = require("@react-native-community/google-signin");
+
+try {
+  let GoogleSignin = require("@react-native-community/google-signin");
+} catch (e) {
+  console.error("Google Signin is not found");
+}
+try {
+  let FBSDK = require("react-native-fbsdk");
+} catch (e) {
+  console.error("Facebook SDK is not found");
+}
+try {
+  let InAppBrowser = require("react-native-inappbrowser-reborn");
+} catch (e) {
+  console.error("InApp Browser is not found");
+}
+try {
+  let AppleAuth = require("@invertase/react-native-apple-authentication");
+  console.log("Apple Auth");
+  console.log(AppleAuth);
+} catch (e) {
+  console.error("Apple auth is not found");
+}
 
 export class Login {
   state;
@@ -52,8 +66,8 @@ export class Login {
   async FBLogin(conf) {
     this.setConf(conf);
     const { url, state } = this.getLoginURL();
-    let result = await LoginManager.logInWithPermissions(["public_profile", "email"]);
-    let currentToken = await AccessToken.getCurrentAccessToken();
+    let result = await FBSDK.LoginManager.logInWithPermissions(["public_profile", "email"]);
+    let currentToken = await FBSDK.AccessToken.getCurrentAccessToken();
     let params = await this.generateParams(conf, "access_token", "facebook", currentToken.accessToken);
     this.props.url = `${this.getRealmURL()}/protocol/openid-connect/token`;
     this.setRequestOptions(
@@ -109,7 +123,7 @@ export class Login {
   async AppleLogin(conf) {
     this.setConf(conf);
     const { url, state } = this.getLoginURL();
-    const appleAuthRequestResponse = await appleAuth.performRequest({
+    const appleAuthRequestResponse = await AppleAuth.appleAuth.performRequest({
       requestedOperation: AppleAuthRequestOperation.LOGIN,
       requestedScopes: [AppleAuthRequestScope.EMAIL, AppleAuthRequestScope.FULL_NAME],
     });
