@@ -1,4 +1,4 @@
-import { Linking } from 'react-native';
+import { Linking, Platform } from 'react-native';
 import * as querystring from 'query-string';
 import uuidv4 from 'uuid/v4';
 import React from 'react';
@@ -20,8 +20,6 @@ try {
 }
 try {
   let AppleAuth = require("@invertase/react-native-apple-authentication");
-  console.log("Apple Auth");
-  console.log(AppleAuth);
 } catch (e) {
   console.error("Apple auth is not found");
 }
@@ -34,7 +32,13 @@ export class Login {
   constructor() {
     this.state = {};
     this.onOpenURL = this.onOpenURL.bind(this);
-    Linking.addEventListener('url', this.onOpenURL);
+    this.onOpenURLWeb = this.onOpenURLWeb.bind(this);
+    if (Platform.OS !== "web") {
+      Linking.addEventListener('url', this.onOpenURL);
+    }
+    else if (Platform.OS === "web") {
+      window.addEventListener('load', this.onOpenURLWeb);
+    }
 
     this.props = {
       requestOptions: {
@@ -164,8 +168,7 @@ export class Login {
         state,
       };
       console.log("in app browser");
-      console.log(InAppBrowser)
-      if (InAppBrowser) {
+      if (typeof InAppBrowser !== "undefined") {
         InAppBrowser.default.open(url);
       }
       else {
@@ -206,7 +209,29 @@ export class Login {
     return false;
   }
 
+  // Needs to exist because addEventListener on url does not seem to work for web
+  async onOpenURLWeb(event) {
+    if (location.hash) {
+      const {
+        state,
+        id_token,
+        access_token,
+      } = querystring.parse(location.hash);
+
+      let tokens = {
+        id_token,
+        access_token,
+      }
+      await this.tokenStorage.saveTokens(tokens);
+
+      //let loadedTokens = await this.getTokens();
+      window.removeEventListener('load');
+    }
+  }
+
   onOpenURL(event) {
+    console.log("conf");
+    console.log(this.conf);
     if (typeof this.conf === 'undefined') {
       return;
     }
@@ -215,8 +240,6 @@ export class Login {
         state,
         code,
       } = querystring.parse(querystring.extract(event.url));
-      console.log(state);
-      console.log(this.state.state);
       if (this.state.state === state) {
         this.retrieveTokens(code);
       }
@@ -262,6 +285,8 @@ export class Login {
       this.setRequestOptions('GET');
 
       const fullResponse = await fetch(this.props.url, this.props.requestOptions);
+      console.log("FULL RESPONSE");
+      console.log(fullResponse);
       if (fullResponse.ok) {
         return fullResponse.json();
       }
@@ -301,7 +326,7 @@ export class Login {
 
   getLoginURL() {
     const { redirectUri, clientId, kcIdpHint } = this.conf;
-    const responseType = 'code';
+    const responseType = 'id_token token';
     const state = uuidv4();
     const scope = 'openid';
     const url = `${this.getRealmURL()}/protocol/openid-connect/auth?${querystring.stringify({
@@ -310,6 +335,7 @@ export class Login {
       redirect_uri: redirectUri,
       client_id: clientId,
       response_type: responseType,
+      nonce: "abc1234",
       state,
     })}`;
 
