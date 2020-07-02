@@ -3,23 +3,34 @@ import * as querystring from 'query-string';
 import uuidv4 from 'uuid/v4';
 import React from 'react';
 
+let GoogleSignin;
+const GoogleSigninInit = '@react-native-community/google-signin';
 try {
-  let GoogleSignin = require("@react-native-community/google-signin");
+  GoogleSignin = require.call(null, GoogleSigninTest);
 } catch (e) {
   console.error("Google Signin is not found");
 }
+
+let FBSDK;
+const FBSDKInit = 'react-native-fbsdk';
 try {
-  let FBSDK = require("react-native-fbsdk");
+  FBSDK = require.call(null, FBSDKInit);
 } catch (e) {
   console.error("Facebook SDK is not found");
 }
+
+let InAppBrowser;
+const InAppBrowserInit = 'react-native-inappbrowser-reborn';
 try {
-  let InAppBrowser = require("react-native-inappbrowser-reborn");
+  InAppBrowser = require.call(null, InAppBrowserInit);
 } catch (e) {
   console.error("InApp Browser is not found");
 }
+
+let AppleAuth;
+const AppleAuthInit = '@invertase/react-native-apple-authentication';
 try {
-  let AppleAuth = require("@invertase/react-native-apple-authentication");
+  AppleAuth = require.call(null, AppleAuthInit);
 } catch (e) {
   console.error("Apple auth is not found");
 }
