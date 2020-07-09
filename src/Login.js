@@ -8,7 +8,7 @@ const GoogleSigninInit = '@react-native-community/google-signin';
 try {
   GoogleSignin = require.call(null, GoogleSigninTest);
 } catch (e) {
-  console.error("Google Signin is not found");
+  console.log("Google Signin is not found");
 }
 
 let FBSDK;
@@ -16,7 +16,7 @@ const FBSDKInit = 'react-native-fbsdk';
 try {
   FBSDK = require.call(null, FBSDKInit);
 } catch (e) {
-  console.error("Facebook SDK is not found");
+  console.log("Facebook SDK is not found");
 }
 
 let InAppBrowser;
@@ -24,7 +24,7 @@ const InAppBrowserInit = 'react-native-inappbrowser-reborn';
 try {
   InAppBrowser = require.call(null, InAppBrowserInit);
 } catch (e) {
-  console.error("InApp Browser is not found");
+  console.log("InApp Browser is not found");
 }
 
 let AppleAuth;
@@ -32,7 +32,7 @@ const AppleAuthInit = '@invertase/react-native-apple-authentication';
 try {
   AppleAuth = require.call(null, AppleAuthInit);
 } catch (e) {
-  console.error("Apple auth is not found");
+  console.log("Apple auth is not found");
 }
 
 export class Login {
