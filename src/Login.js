@@ -106,7 +106,14 @@ export class Login {
     this.setConf(conf);
     const { url, state } = this.getLoginURL();
     GoogleSignin.GoogleSignin.configure();
-    const userInfo = await GoogleSignin.GoogleSignin.signIn();
+    try {
+        const userInfo = await GoogleSignin.GoogleSignin.signIn();
+        }
+    catch (err) {
+        if(err.message.includes("The user canceled the sign in request")) {
+        return {cancelled: true}
+                }
+        }
     let tokenInfo = await GoogleSignin.GoogleSignin.getTokens();
     let params = await this.generateParams(conf, "access_token", "google", tokenInfo.accessToken);
     this.props.url = `${this.getRealmURL()}/protocol/openid-connect/token`;
