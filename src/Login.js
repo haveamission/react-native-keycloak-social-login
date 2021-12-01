@@ -2,38 +2,10 @@ import { Linking, Platform } from 'react-native';
 import * as querystring from 'query-string';
 import uuidv4 from 'uuid/v4';
 import React from 'react';
-
-let GoogleSignin;
-const GoogleSigninInit = '@react-native-community/google-signin';
-try {
-  GoogleSignin = require.call(null, GoogleSigninTest);
-} catch (e) {
-  console.log("Google Signin is not found");
-}
-
-let FBSDK;
-const FBSDKInit = 'react-native-fbsdk';
-try {
-  FBSDK = require.call(null, FBSDKInit);
-} catch (e) {
-  console.log("Facebook SDK is not found");
-}
-
-let InAppBrowser;
-const InAppBrowserInit = 'react-native-inappbrowser-reborn';
-try {
-  InAppBrowser = require.call(null, InAppBrowserInit);
-} catch (e) {
-  console.log("InApp Browser is not found");
-}
-
-let AppleAuth;
-const AppleAuthInit = '@invertase/react-native-apple-authentication';
-try {
-  AppleAuth = require.call(null, AppleAuthInit);
-} catch (e) {
-  console.log("Apple auth is not found");
-}
+import {GoogleSignin} from '@react-native-google-signin/google-signin';
+import { LoginManager, AccessToken } from "react-native-fbsdk";
+import InAppBrowser from 'react-native-inappbrowser-reborn';
+import { appleAuth } from '@invertase/react-native-apple-authentication';
 
 export class Login {
   state;
@@ -78,8 +50,13 @@ export class Login {
   async FBLogin(conf) {
     this.setConf(conf);
     const { url, state } = this.getLoginURL();
-    let result = await FBSDK.LoginManager.logInWithPermissions(["public_profile", "email"]);
-    let currentToken = await FBSDK.AccessToken.getCurrentAccessToken();
+    let result = await LoginManager.logInWithPermissions(["public_profile", "email"]);
+    let currentToken = await AccessToken.getCurrentAccessToken();
+    if(currentToken === null) {
+      return null;
+    }
+    console.log("current token here");
+    console.log(currentToken);
     let params = await this.generateParams(conf, "access_token", "facebook", currentToken.accessToken);
     this.props.url = `${this.getRealmURL()}/protocol/openid-connect/token`;
     this.setRequestOptions(
@@ -105,16 +82,9 @@ export class Login {
   async GoogleLogin(conf) {
     this.setConf(conf);
     const { url, state } = this.getLoginURL();
-    GoogleSignin.GoogleSignin.configure();
-    try {
-        const userInfo = await GoogleSignin.GoogleSignin.signIn();
-        }
-    catch (err) {
-        if(err.message.includes("The user canceled the sign in request")) {
-        return {cancelled: true}
-                }
-        }
-    let tokenInfo = await GoogleSignin.GoogleSignin.getTokens();
+    GoogleSignin.configure();
+    const userInfo = await GoogleSignin.signIn();
+    let tokenInfo = await GoogleSignin.getTokens();
     let params = await this.generateParams(conf, "access_token", "google", tokenInfo.accessToken);
     this.props.url = `${this.getRealmURL()}/protocol/openid-connect/token`;
     this.setRequestOptions(
@@ -123,6 +93,8 @@ export class Login {
     );
     const fullResponse = await fetch(this.props.url, this.props.requestOptions);
     const jsonResponse = await fullResponse.json();
+
+    let responseText = await fullResponse.json();
 
     if (fullResponse.ok) {
       jsonResponse.id_token = jsonResponse.access_token;
@@ -140,9 +112,9 @@ export class Login {
   async AppleLogin(conf) {
     this.setConf(conf);
     const { url, state } = this.getLoginURL();
-    const appleAuthRequestResponse = await AppleAuth.appleAuth.performRequest({
-      requestedOperation: AppleAuthRequestOperation.LOGIN,
-      requestedScopes: [AppleAuthRequestScope.EMAIL, AppleAuthRequestScope.FULL_NAME],
+    const appleAuthRequestResponse = await appleAuth.performRequest({
+      requestedOperation: appleAuth.Operation.LOGIN,
+      requestedScopes: [appleAuth.Scope.EMAIL, appleAuth.Scope.FULL_NAME],
     });
     let code = appleAuthRequestResponse.authorizationCode;
     let token = appleAuthRequestResponse.identityToken;
@@ -183,7 +155,6 @@ export class Login {
         reject,
         state,
       };
-      console.log("in app browser");
       if (typeof InAppBrowser !== "undefined") {
         InAppBrowser.default.open(url);
       }
@@ -246,8 +217,6 @@ export class Login {
   }
 
   onOpenURL(event) {
-    console.log("conf");
-    console.log(this.conf);
     if (typeof this.conf === 'undefined') {
       return;
     }
@@ -278,8 +247,6 @@ export class Login {
 
     const fullResponse = await fetch(this.props.url, this.props.requestOptions);
     const jsonResponse = await fullResponse.json();
-    console.log("TRUE JSON RESPONSE");
-    console.log(jsonResponse);
     if (fullResponse.ok) {
       this.tokenStorage.saveTokens(jsonResponse);
       this.state.resolve(jsonResponse);
@@ -301,8 +268,6 @@ export class Login {
       this.setRequestOptions('GET');
 
       const fullResponse = await fetch(this.props.url, this.props.requestOptions);
-      console.log("FULL RESPONSE");
-      console.log(fullResponse);
       if (fullResponse.ok) {
         return fullResponse.json();
       }
