@@ -94,8 +94,6 @@ export class Login {
     const fullResponse = await fetch(this.props.url, this.props.requestOptions);
     const jsonResponse = await fullResponse.json();
 
-    let responseText = await fullResponse.json();
-
     if (fullResponse.ok) {
       jsonResponse.id_token = jsonResponse.access_token;
 
